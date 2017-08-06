@@ -7,17 +7,22 @@ import Book from './Book'
 
 class BooksApp extends React.Component {
   state = {
-    /**
-     * TODO: Instead of using this state variable to keep track of which page
-     * we're on, use the URL in the browser's address bar. This will ensure that
-     * users can use the browser's back and forward buttons to navigate between
-     * pages, as well as provide a good URL they can bookmark and share.
-     */
-    books: []
+    books: [],
+    searchedBooks: []
   }
+
   componentDidMount() {
     BooksAPI.getAll().then((books) => {
       this.setState({books: books})
+    })
+  }
+
+  changeBookshelf = (book, newBookshelf) => {
+    BooksAPI.update(book, newBookshelf).then(result => {
+      book.shelf = newBookshelf
+      this.setState(prevState => ({
+        books: prevState.books.filter(b => b.id !== book.id).concat(book)
+      }))
     })
   }
 
@@ -35,6 +40,24 @@ class BooksApp extends React.Component {
     return this.state.books.filter((book) => book.shelf === "read")
   }
 
+  onSearchBoxChange = (event) => {
+    if(event.key === 'Enter') {
+      this.searchBooks(event.target.value)
+    }
+  }
+
+  searchBooks = (query) => {
+    BooksAPI.search(query, 20).then(result => {
+      if (Array.isArray(result)) {
+        this.setState({ searchedBooks: result })
+      }
+    })
+  }
+
+  clearSearch = () => {
+    console.log('clearSearch')
+    this.setState({ searchedBooks: [] })
+  }
   render() {
     return (
       <div className="app">
@@ -51,12 +74,18 @@ class BooksApp extends React.Component {
                   However, remember that the BooksAPI.search method DOES search by title or author. So, don't worry if
                   you don't find a specific author or title. Every search is limited by search terms.
                 */}
-                <input type="text" placeholder="Search by title or author"/>
+                <input type="text" placeholder="Search by title or author" onKeyPress={this.onSearchBoxChange}/>
 
               </div>
             </div>
             <div className="search-books-results">
-              <ol className="books-grid"></ol>
+              <ol className="books-grid">
+              {
+                this.state.searchedBooks.map((book) => (
+                  <Book key={book.id} book={book} onBookshelfChange={this.changeBookshelf} />
+                ))
+              }
+              </ol>
             </div>
           </div>
         )}></Route>
@@ -74,7 +103,7 @@ class BooksApp extends React.Component {
                     <ol className="books-grid">
                       {
                         this.currentlyReadingBooks().map((book) => (
-                          <Book key={book.id} book={book} />
+                          <Book key={book.id} book={book} onBookshelfChange={this.changeBookshelf} />
                         ))
                       }
                     </ol>
@@ -90,7 +119,7 @@ class BooksApp extends React.Component {
                     <ol className="books-grid">
                       {
                         this.wantToReadBooks().map((book) => (
-                          <Book key={book.id} book={book} />
+                          <Book key={book.id} book={book} onBookshelfChange={this.changeBookshelf} />
                         ))
                       }
                     </ol>
@@ -106,7 +135,7 @@ class BooksApp extends React.Component {
                     <ol className="books-grid">
                       {
                         this.readBooks().map((book) => (
-                          <Book key={book.id} book={book} />
+                          <Book key={book.id} book={book} onBookshelfChange={this.changeBookshelf} />
                         ))
                       }
                     </ol>
@@ -115,7 +144,7 @@ class BooksApp extends React.Component {
               </div>
             </div>
             <div className="open-search">
-              <Link to="/search">Add a book</Link>
+              <Link to="/search" onClick={this.clearSearch}>Add a book</Link>
             </div>
           </div>
         )}></Route>
