@@ -8,20 +8,24 @@ import Book from './Book'
 class BooksApp extends React.Component {
   state = {
     books: [],
-    searchedBooks: []
+    searchedBooks: [],
+    loading: false
   }
 
   componentDidMount() {
+    this.setState({loading: true})
     BooksAPI.getAll().then((books) => {
-      this.setState({books: books})
+      this.setState({books: books, loading:false})
     })
   }
 
   changeBookshelf = (book, newBookshelf) => {
+    this.setState({loading: true})
     BooksAPI.update(book, newBookshelf).then(result => {
       book.shelf = newBookshelf
       this.setState(prevState => ({
-        books: prevState.books.filter(b => b.id !== book.id).concat(book)
+        books: prevState.books.filter(b => b.id !== book.id).concat(book),
+        loading: false
       }))
     })
   }
@@ -47,20 +51,37 @@ class BooksApp extends React.Component {
   }
 
   searchBooks = (query) => {
+    this.setState({ loading: true })
     BooksAPI.search(query, 20).then(result => {
       if (Array.isArray(result)) {
-        this.setState({ searchedBooks: result })
+        let updatedResult = result.map(newBook => {
+          let book = this.state.books.find(book => book.id === newBook.id)
+
+          if (book) {
+            newBook.shelf = book.shelf
+          }
+
+          return newBook
+        })
+
+        this.setState({
+          searchedBooks: updatedResult,
+          loading: false
+        })
       }
     })
   }
 
   clearSearch = () => {
-    console.log('clearSearch')
     this.setState({ searchedBooks: [] })
   }
   render() {
     return (
       <div className="app">
+        {
+          this.state.loading && (<div className="loading">Loading</div>)
+        }
+
         <Route exact path="/search" render={ () =>(
           <div className="search-books">
             <div className="search-books-bar">
