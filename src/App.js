@@ -3,6 +3,7 @@ import { Route } from 'react-router-dom'
 import { Link } from 'react-router-dom'
 import * as BooksAPI from './BooksAPI'
 import './App.css'
+import Bookshelf from './Bookshelf'
 import Book from './Book'
 
 class BooksApp extends React.Component {
@@ -30,18 +31,8 @@ class BooksApp extends React.Component {
     })
   }
 
-  currentlyReadingBooks = () => {
-    return this.state.books.filter((book) => book.shelf === "currentlyReading")
-  }
-
-  wantToReadBooks = () => {
-    return this.state.books.filter((book) => {
-      return book.shelf === "wantToRead"
-    })
-  }
-
-  readBooks = () => {
-    return this.state.books.filter((book) => book.shelf === "read")
+  filterBooksByShelf = (shelf) => {
+    return this.state.books.filter((book) => book.shelf === shelf)
   }
 
   onSearchBoxChange = (event) => {
@@ -76,6 +67,11 @@ class BooksApp extends React.Component {
     this.setState({ searchedBooks: [] })
   }
   render() {
+    let bookshelves = [
+      { key: 'currentlyReading', value: 'Currently Reading'},
+      { key: 'wantToRead', value: 'Want to Read'},
+      { key: 'read', value: 'Read'}
+    ]
     return (
       <div className="app">
         {
@@ -116,54 +112,15 @@ class BooksApp extends React.Component {
             <div className="list-books-title">
               <h1>MyReads</h1>
             </div>
-            <div className="list-books-content">
-              <div>
-                <div className="bookshelf">
-                  <h2 className="bookshelf-title">Currently Reading</h2>
-                  <div className="bookshelf-books">
-                    <ol className="books-grid">
-                      {
-                        this.currentlyReadingBooks().map((book) => (
-                          <Book key={book.id} book={book} onBookshelfChange={this.changeBookshelf} />
-                        ))
-                      }
-                    </ol>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="list-books-content">
-              <div>
-                <div className="bookshelf">
-                  <h2 className="bookshelf-title">Want to Read</h2>
-                  <div className="bookshelf-books">
-                    <ol className="books-grid">
-                      {
-                        this.wantToReadBooks().map((book) => (
-                          <Book key={book.id} book={book} onBookshelfChange={this.changeBookshelf} />
-                        ))
-                      }
-                    </ol>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="list-books-content">
-              <div>
-                <div className="bookshelf">
-                  <h2 className="bookshelf-title">Read</h2>
-                  <div className="bookshelf-books">
-                    <ol className="books-grid">
-                      {
-                        this.readBooks().map((book) => (
-                          <Book key={book.id} book={book} onBookshelfChange={this.changeBookshelf} />
-                        ))
-                      }
-                    </ol>
-                  </div>
-                </div>
-              </div>
-            </div>
+            {
+              bookshelves.map(bs => (
+                  <Bookshelf  name={bs.value}
+                              key={bs.key}
+                              booksInShelf={this.filterBooksByShelf(bs.key)}
+                              changeBookshelf={this.changeBookshelf}>
+                  </Bookshelf>
+              ))
+            }
             <div className="open-search">
               <Link to="/search" onClick={this.clearSearch}>Add a book</Link>
             </div>
