@@ -36,31 +36,34 @@ class BooksApp extends React.Component {
   }
 
   onSearchBoxChange = (event) => {
-    if(event.key === 'Enter') {
-      this.searchBooks(event.target.value)
+    let query = event.target.value.trim()
+
+    if (query) {
+      this.setState({ loading: true })
+      BooksAPI.search(query, 20).then(result => {
+        if (Array.isArray(result)) {
+          let updatedResult = result.map(newBook => {
+            let book = this.state.books.find(book => book.id === newBook.id)
+
+            if (book) {
+              newBook.shelf = book.shelf
+            }
+
+            return newBook
+          })
+
+          this.setState({
+            searchedBooks: updatedResult,
+            loading: false
+          })
+        }
+      })
+    } else {
+      this.setState({
+        searchedBooks: [],
+        loading: false
+      })
     }
-  }
-
-  searchBooks = (query) => {
-    this.setState({ loading: true })
-    BooksAPI.search(query, 20).then(result => {
-      if (Array.isArray(result)) {
-        let updatedResult = result.map(newBook => {
-          let book = this.state.books.find(book => book.id === newBook.id)
-
-          if (book) {
-            newBook.shelf = book.shelf
-          }
-
-          return newBook
-        })
-
-        this.setState({
-          searchedBooks: updatedResult,
-          loading: false
-        })
-      }
-    })
   }
 
   clearSearch = () => {
@@ -91,7 +94,7 @@ class BooksApp extends React.Component {
                   However, remember that the BooksAPI.search method DOES search by title or author. So, don't worry if
                   you don't find a specific author or title. Every search is limited by search terms.
                 */}
-                <input type="text" placeholder="Search by title or author" onKeyPress={this.onSearchBoxChange}/>
+                <input type="text" placeholder="Search by title or author" onChange={this.onSearchBoxChange}/>
 
               </div>
             </div>
