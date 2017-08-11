@@ -5,6 +5,7 @@ import * as BooksAPI from './BooksAPI'
 import './App.css'
 import Bookshelf from './Bookshelf'
 import Book from './Book'
+import shortId from 'shortid'
 
 class BooksApp extends React.Component {
   state = {
@@ -14,7 +15,9 @@ class BooksApp extends React.Component {
   }
 
   componentDidMount() {
-    this.setState({loading: true})
+    if (window.location.pathname === '/') {
+      this.setState({loading: true})
+    }
     BooksAPI.getAll().then((books) => {
       this.setState({books: books, loading:false})
     })
@@ -35,40 +38,52 @@ class BooksApp extends React.Component {
     return this.state.books.filter((book) => book.shelf === shelf)
   }
 
+  clearSearch = () => {
+    this.setState({
+      searchedBooks: [],
+      loading: false
+    })
+  }
+
+  findBooks = (query) => {
+    BooksAPI.search(query, 20).then(result => {
+      if (!Array.isArray(result)) {
+        this.clearSearch()
+        return
+      }
+
+      let updatedResult = result.map(newBook => {
+        let book = this.state.books.find(book => book.id === newBook.id)
+
+        if (book) {
+          newBook.shelf = book.shelf
+        }
+
+        return newBook
+      })
+
+      this.setState({
+        searchedBooks: updatedResult,
+        loading: false
+      })
+    }).catch(error => {
+      this.clearSearch()
+    });
+  }
+
+
   onSearchBoxChange = (event) => {
     let query = event.target.value.trim()
 
-    if (query) {
-      this.setState({ loading: true })
-      BooksAPI.search(query, 20).then(result => {
-        if (Array.isArray(result)) {
-          let updatedResult = result.map(newBook => {
-            let book = this.state.books.find(book => book.id === newBook.id)
-
-            if (book) {
-              newBook.shelf = book.shelf
-            }
-
-            return newBook
-          })
-
-          this.setState({
-            searchedBooks: updatedResult,
-            loading: false
-          })
-        }
-      })
-    } else {
-      this.setState({
-        searchedBooks: [],
-        loading: false
-      })
+    if (query.length === 0) {
+      this.clearSearch()
+      return
     }
+
+    this.setState({ loading: true })
+    this.findBooks(query)
   }
 
-  clearSearch = () => {
-    this.setState({ searchedBooks: [] })
-  }
   render() {
     let bookshelves = [
       { key: 'currentlyReading', value: 'Currently Reading'},
@@ -102,8 +117,8 @@ class BooksApp extends React.Component {
               <ol className="books-grid">
               {
                 this.state.searchedBooks.map((book) => (
-                  <Book key={book.id} book={book} onBookshelfChange={this.changeBookshelf} />
-                ))
+                  <Book key={shortId.generate()} book={book} onBookshelfChange={this.changeBookshelf} />)
+                )
               }
               </ol>
             </div>
@@ -117,7 +132,7 @@ class BooksApp extends React.Component {
             </div>
             {
               bookshelves.map(bs => (
-                  <Bookshelf  name={bs.value}
+                  <Bookshelf  bookshelfTitle={bs.value}
                               key={bs.key}
                               booksInShelf={this.filterBooksByShelf(bs.key)}
                               changeBookshelf={this.changeBookshelf}>

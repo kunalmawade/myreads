@@ -1,5 +1,6 @@
 import React from 'react';
 import Book from './Book'
+import shortId from 'shortid'
 
 const Bookshelf = (props) => {
     return (
@@ -11,7 +12,7 @@ const Bookshelf = (props) => {
               <ol className="books-grid">
                 {
                   props.booksInShelf.map((book) => (
-                    <Book key={book.id} book={book} onBookshelfChange={props.changeBookshelf} />
+                    <Book key={shortId.generate()} book={book} onBookshelfChange={props.changeBookshelf} />
                   ))
                 }
               </ol>
