@@ -2,17 +2,17 @@ import React from 'react';
 import Book from './Book'
 import shortId from 'shortid'
 
-const Bookshelf = (props) => {
+const Bookshelf = ({ bookshelfTitle, booksInShelf, changeBookshelf }) => {
     return (
       <div className="list-books-content">
         <div>
           <div className="bookshelf">
-            <h2 className="bookshelf-title">{props.bookshelfTitle}</h2>
+            <h2 className="bookshelf-title">{bookshelfTitle}</h2>
             <div className="bookshelf-books">
               <ol className="books-grid">
                 {
-                  props.booksInShelf.map((book) => (
-                    <Book key={shortId.generate()} book={book} onBookshelfChange={props.changeBookshelf} />
+                  booksInShelf.map((book) => (
+                    <Book key={shortId.generate()} book={book} onBookshelfChange={changeBookshelf} />
                   ))
                 }
               </ol>

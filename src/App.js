@@ -8,7 +8,7 @@ import Book from './Book'
 import shortId from 'shortid'
 
 class BooksApp extends React.Component {
-  static const bookshelves = [
+  static bookshelves = [
     { key: 'currentlyReading', value: 'Currently Reading'},
     { key: 'wantToRead', value: 'Want to Read'},
     { key: 'read', value: 'Read'}
@@ -22,21 +22,22 @@ class BooksApp extends React.Component {
 
   componentDidMount() {
     if (window.location.pathname === '/') {
-      this.setState({loading: true})
+      this.showLoading()
     }
     BooksAPI.getAll().then((books) => {
-      this.setState({books: books, loading:false})
+      this.setState({books})
+      this.hideLoading()
     })
   }
 
   changeBookshelf = (book, newBookshelf) => {
-    this.setState({loading: true})
+    this.showLoading()
     BooksAPI.update(book, newBookshelf).then(result => {
       book.shelf = newBookshelf
       this.setState(prevState => ({
-        books: prevState.books.filter(b => b.id !== book.id).concat(book),
-        loading: false
+        books: prevState.books.filter(b => b.id !== book.id).concat(book)
       }))
+      this.hideLoading()
     })
   }
 
@@ -45,10 +46,16 @@ class BooksApp extends React.Component {
   }
 
   clearSearch = () => {
-    this.setState({
-      searchedBooks: [],
-      loading: false
-    })
+    this.setState({ searchedBooks: []})
+    this.hideLoading()
+  }
+
+  showLoading = () => {
+    this.setState({ loading: true })
+  }
+
+  hideLoading = () => {
+    this.setState({ loading: false })
   }
 
   findBooks = (query) => {
@@ -58,7 +65,7 @@ class BooksApp extends React.Component {
         return
       }
 
-      const updatedResult = result.map(newBook => {
+      const searchedBooks = result.map(newBook => {
         const book = this.state.books.find(book => book.id === newBook.id)
 
         if (book) {
@@ -68,10 +75,8 @@ class BooksApp extends React.Component {
         return newBook
       })
 
-      this.setState({
-        searchedBooks: updatedResult,
-        loading: false
-      })
+      this.setState({ searchedBooks })
+      this.hideLoading()
     }).catch(error => {
       this.clearSearch()
     });
@@ -86,7 +91,7 @@ class BooksApp extends React.Component {
       return
     }
 
-    this.setState({ loading: true })
+    this.showLoading()
     this.findBooks(query)
   }
 
