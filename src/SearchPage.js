@@ -48,6 +48,17 @@ class SearchPage extends React.Component {
     });
   }
 
+  changeBookshelf = (book, newBookshelf) => {
+    this.setState({ loading: true })
+    BooksAPI.update(book, newBookshelf).then(result => {
+      book.shelf = newBookshelf
+      this.setState(prevState => ({
+        searchedBooks: prevState.searchedBooks.filter(b => b.id !== book.id).concat(book)
+      }))
+      this.setState({ loading: false })
+    })
+  }
+
   render () {
     return (
       <div>
