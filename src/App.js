@@ -21,9 +21,7 @@ class BooksApp extends React.Component {
   }
 
   componentDidMount() {
-    if (window.location.pathname === '/') {
-      this.showLoading()
-    }
+    this.showLoading()
     BooksAPI.getAll().then((books) => {
       this.setState({books})
       this.hideLoading()
